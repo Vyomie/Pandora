@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VYXM Video Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <title>VYXM Video Generator - GitHub Pages Only</title>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -24,114 +23,47 @@
       background: #007bff;
       color: white;
       cursor: pointer;
-      transition: 0.2s;
+      margin-left: 8px;
     }
-    button:hover { background: #0056b3; }
-    .result {
+    .instructions {
       margin-top: 1.5rem;
-      padding: 1rem;
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    video {
-      width: 100%;
-      border-radius: 0.75rem;
-      margin-top: 1rem;
-    }
-    pre {
-      background: #f1f1f1;
+      background: #fff3cd;
       padding: 1rem;
       border-radius: 0.5rem;
-      white-space: pre-wrap;
+      border: 1px solid #ffeeba;
     }
   </style>
 </head>
 <body>
-  <h1>✨️ PANDORA ✨️</h1>
+  <h1>🎬 VYXM Video Generator</h1>
   <div>
     <input id="topic" type="text" placeholder="Enter your topic..." style="width:70%" />
-    <button onclick="generateVideo()">Generate</button>
+    <button onclick="openApi()">Generate</button>
   </div>
-  <div id="output" class="result" style="display:none;">
-    <h2>Generated Video</h2>
-    <video id="video" controls></video>
-    <h3>Script</h3>
-    <pre id="script"></pre>
+
+  <div class="instructions">
+    <h2>Instructions:</h2>
+    <ol>
+      <li>Enter your topic above and click <strong>Generate</strong>.</li>
+      <li>A new tab will open showing the raw JSON from <code>api.vyxm.in</code>.</li>
+      <li>Copy the <code>video_url</code> from the JSON and paste it in the browser to watch the video.</li>
+      <li>Copy the <code>script</code> from the JSON to view the generated script.</li>
+    </ol>
+    <p>This method avoids all CORS issues because the request is made directly by your browser.</p>
   </div>
 
   <script>
-    async function generateVideo() {
+    function openApi() {
       const topic = document.getElementById('topic').value.trim();
       if (!topic) {
         alert("Please enter a topic!");
         return;
       }
-
-      const output = document.getElementById('output');
-      const video = document.getElementById('video');
-      const scriptBox = document.getElementById('script');
-      output.style.display = 'block';
-      video.src = '';
-      scriptBox.textContent = 'Requesting generation... please wait.';
-
-      try {
-        const topicParam = topic.replace(/\s+/g, '+');
-        const apiURL = `https://api.vyxm.in/generate?topic=${topicParam}`;
-        const proxy = "https://corsproxy.io/?";
-
-        scriptBox.textContent = `🔄 Fetching via proxy:\n${proxy}${apiURL}`;
-
-        // Use the proxy to bypass CORS restrictions
-        const response = await axios.get(proxy + encodeURIComponent(apiURL));
-        const data = response.data;
-
-        console.log("API Response:", data);
-
-        if (!data || !data.video_url) {
-          scriptBox.textContent =
-            "❌ Error: 'video_url' not found in API response.\n\nFull response:\n" +
-            JSON.stringify(data, null, 2);
-          return;
-        }
-
-        const filePart = data.video_url.split('=')[1];
-        const videoURL = `https://api.vyxm.in/video?file=${filePart}`;
-        const scriptText = data.script || "(No script found in response.)";
-
-        scriptBox.textContent =
-          scriptText +
-          "\n\n⏳ Video is generating...\nChecking availability every 15 seconds.";
-
-        // Start polling until the video becomes available
-        pollVideo(videoURL, video, scriptBox);
-      } catch (err) {
-        console.error("API Fetch Error:", err);
-        scriptBox.textContent =
-          `⚠️ Error fetching from API:\n${err.message || err}\n\nCheck console for more info.`;
-      }
-    }
-
-    async function pollVideo(url, videoElem, scriptElem, retries = 24) {
-      for (let i = 0; i < retries; i++) {
-        try {
-          const res = await fetch(url, { method: 'HEAD' });
-          if (res.ok) {
-            videoElem.src = url;
-            scriptElem.textContent += "\n\n✅ Video is ready!";
-            return;
-          } else {
-            console.log(`Video not ready yet (try ${i + 1}): ${res.status}`);
-          }
-        } catch (e) {
-          console.log("Ping error:", e);
-        }
-
-        scriptElem.textContent += `\n⏳ Still generating... (try ${i + 1})`;
-        await new Promise(r => setTimeout(r, 15000)); // wait 15s
-      }
-
-      scriptElem.textContent += "\n❌ Video not available after several attempts.";
+      // Replace spaces with + for API query
+      const topicParam = topic.replace(/\s+/g, '+');
+      const apiURL = `https://api.vyxm.in/generate?topic=${topicParam}`;
+      // Open the API URL in a new tab
+      window.open(apiURL, '_blank');
     }
   </script>
 </body>
