@@ -48,7 +48,7 @@
   </style>
 </head>
 <body>
-  <h1>PANDORA ✨️</h1>
+  <h1>🎬 VYXM Video Generator</h1>
   <div>
     <input id="topic" type="text" placeholder="Enter your topic..." style="width:70%" />
     <button onclick="generateVideo()">Generate</button>
@@ -71,25 +71,27 @@
       const output = document.getElementById('output');
       const video = document.getElementById('video');
       const scriptBox = document.getElementById('script');
-
       output.style.display = 'block';
       video.src = '';
       scriptBox.textContent = 'Requesting generation... please wait.';
 
       try {
-        // Replace spaces with '+'
         const topicParam = topic.replace(/\s+/g, '+');
         const apiURL = `https://api.vyxm.in/generate?topic=${topicParam}`;
-        scriptBox.textContent = `🔄 Fetching: ${apiURL}`;
+        const proxy = "https://corsproxy.io/?";
 
-        const response = await axios.get(apiURL);
+        scriptBox.textContent = `🔄 Fetching via proxy:\n${proxy}${apiURL}`;
+
+        // Use the proxy to bypass CORS restrictions
+        const response = await axios.get(proxy + encodeURIComponent(apiURL));
         const data = response.data;
 
-        // Show raw JSON for debugging
         console.log("API Response:", data);
 
         if (!data || !data.video_url) {
-          scriptBox.textContent = "❌ Error: 'video_url' not found in API response.\n\nFull response:\n" + JSON.stringify(data, null, 2);
+          scriptBox.textContent =
+            "❌ Error: 'video_url' not found in API response.\n\nFull response:\n" +
+            JSON.stringify(data, null, 2);
           return;
         }
 
@@ -97,15 +99,16 @@
         const videoURL = `https://api.vyxm.in/video?file=${filePart}`;
         const scriptText = data.script || "(No script found in response.)";
 
-        // Show script immediately
-        scriptBox.textContent = scriptText + "\n\n⏳ Video is generating...\nChecking every 15 seconds until ready.";
+        scriptBox.textContent =
+          scriptText +
+          "\n\n⏳ Video is generating...\nChecking availability every 15 seconds.";
 
-        // Start polling for the video file
+        // Start polling until the video becomes available
         pollVideo(videoURL, video, scriptBox);
-
       } catch (err) {
         console.error("API Fetch Error:", err);
-        scriptBox.textContent = `⚠️ Error fetching from API:\n${err.message || err}`;
+        scriptBox.textContent =
+          `⚠️ Error fetching from API:\n${err.message || err}\n\nCheck console for more info.`;
       }
     }
 
