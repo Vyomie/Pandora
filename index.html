@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VYXM Video Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8f9fa;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+    h1 { text-align: center; }
+    input, button {
+      font-size: 1rem;
+      padding: 0.6rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: #0056b3; }
+    .result {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    video {
+      width: 100%;
+      border-radius: 0.75rem;
+      margin-top: 1rem;
+    }
+    pre {
+      background: #f1f1f1;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 VYXM Video Generator</h1>
+  <div>
+    <input id="topic" type="text" placeholder="Enter your topic..." style="width:70%" />
+    <button onclick="generateVideo()">Generate</button>
+  </div>
+  <div id="output" class="result" style="display:none;">
+    <h2>Generated Video</h2>
+    <video id="video" controls></video>
+    <h3>Script</h3>
+    <pre id="script"></pre>
+  </div>
+
+  <script>
+    async function generateVideo() {
+      const topic = document.getElementById('topic').value.trim();
+      if (!topic) {
+        alert("Please enter a topic!");
+        return;
+      }
+
+      const output = document.getElementById('output');
+      const video = document.getElementById('video');
+      const script = document.getElementById('script');
+      output.style.display = 'block';
+      video.src = '';
+      script.textContent = 'Loading...';
+
+      try {
+        const response = await axios.get(`https://api.vyxm.in/generate?topic=${encodeURIComponent(topic)}`);
+        const data = response.data;
+
+        if (!data.video_url) {
+          script.textContent = "Error: video_url not found in API response.";
+          return;
+        }
+
+        // Construct full video URL
+        const filePart = data.video_url.split('=')[1];
+        const videoURL = `https://api.vyxm.in/video?file=${filePart}`;
+
+        video.src = videoURL;
+        script.textContent = data.script || "(No script found)";
+
+        // Re-render MathJax for LaTeX
+        if (window.MathJax) {
+          MathJax.typesetPromise();
+        }
+      } catch (err) {
+        console.error(err);
+        script.textContent = "Error fetching from API.";
+      }
+    }
+  </script>
+</body>
+</html>
