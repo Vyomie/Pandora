@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VYXM Video Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async
-          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-  </script>
   <style>
     body {
       font-family: system-ui, sans-serif;
@@ -52,7 +48,7 @@
   </style>
 </head>
 <body>
-  <h1>🎬 VYXM Video Generator</h1>
+  <h1>PANDORA ✨️</h1>
   <div>
     <input id="topic" type="text" placeholder="Enter your topic..." style="width:70%" />
     <button onclick="generateVideo()">Generate</button>
@@ -81,33 +77,35 @@
       scriptBox.textContent = 'Requesting generation... please wait.';
 
       try {
-        // Replace spaces with '+' for proper URL formatting
+        // Replace spaces with '+'
         const topicParam = topic.replace(/\s+/g, '+');
-        const response = await axios.get(`https://api.vyxm.in/generate?topic=${topicParam}`);
+        const apiURL = `https://api.vyxm.in/generate?topic=${topicParam}`;
+        scriptBox.textContent = `🔄 Fetching: ${apiURL}`;
+
+        const response = await axios.get(apiURL);
         const data = response.data;
 
+        // Show raw JSON for debugging
+        console.log("API Response:", data);
+
         if (!data || !data.video_url) {
-          scriptBox.textContent = "Error: 'video_url' not found in API response.";
+          scriptBox.textContent = "❌ Error: 'video_url' not found in API response.\n\nFull response:\n" + JSON.stringify(data, null, 2);
           return;
         }
 
-        // Extract fields from JSON
         const filePart = data.video_url.split('=')[1];
         const videoURL = `https://api.vyxm.in/video?file=${filePart}`;
         const scriptText = data.script || "(No script found in response.)";
 
-        // Display script immediately
-        scriptBox.textContent = scriptText + "\n\n⏳ Generating video... checking availability every 15 seconds.";
+        // Show script immediately
+        scriptBox.textContent = scriptText + "\n\n⏳ Video is generating...\nChecking every 15 seconds until ready.";
 
-        // Render LaTeX (if any)
-        if (window.MathJax) MathJax.typesetPromise();
-
-        // Begin polling to check if video is ready
+        // Start polling for the video file
         pollVideo(videoURL, video, scriptBox);
 
       } catch (err) {
-        console.error(err);
-        scriptBox.textContent = "⚠️ Error fetching from API.";
+        console.error("API Fetch Error:", err);
+        scriptBox.textContent = `⚠️ Error fetching from API:\n${err.message || err}`;
       }
     }
 
@@ -116,18 +114,18 @@
         try {
           const res = await fetch(url, { method: 'HEAD' });
           if (res.ok) {
-            // Video is ready
             videoElem.src = url;
-            scriptElem.textContent += "\n\n✅ Video is ready to play!";
-            if (window.MathJax) MathJax.typesetPromise();
+            scriptElem.textContent += "\n\n✅ Video is ready!";
             return;
+          } else {
+            console.log(`Video not ready yet (try ${i + 1}): ${res.status}`);
           }
         } catch (e) {
-          console.log("Ping failed:", e);
+          console.log("Ping error:", e);
         }
-        scriptElem.textContent = scriptElem.textContent.replace(/✅.*/g, '');
+
         scriptElem.textContent += `\n⏳ Still generating... (try ${i + 1})`;
-        await new Promise(r => setTimeout(r, 15000)); // Wait 15s
+        await new Promise(r => setTimeout(r, 15000)); // wait 15s
       }
 
       scriptElem.textContent += "\n❌ Video not available after several attempts.";
