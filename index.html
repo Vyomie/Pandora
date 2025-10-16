@@ -77,10 +77,12 @@
       const script = document.getElementById('script');
       output.style.display = 'block';
       video.src = '';
-      script.textContent = 'Loading...';
+      script.textContent = 'Requesting generation... please wait.';
 
       try {
-        const response = await axios.get(`https://api.vyxm.in/generate?topic=${encodeURIComponent(topic)}`);
+        // Replace spaces with '+'
+        const topicParam = topic.replace(/\s+/g, '+');
+        const response = await axios.get(`https://api.vyxm.in/generate?topic=${topicParam}`);
         const data = response.data;
 
         if (!data.video_url) {
@@ -88,12 +90,13 @@
           return;
         }
 
-        // Construct full video URL
         const filePart = data.video_url.split('=')[1];
         const videoURL = `https://api.vyxm.in/video?file=${filePart}`;
 
-        video.src = videoURL;
-        script.textContent = data.script || "(No script found)";
+        script.textContent = (data.script || "(No script found)") + "\n\nWaiting for video to finish generating...";
+
+        // Try loading the video every 15s until it’s available
+        checkVideoReady(videoURL, video, script);
 
         // Re-render MathJax for LaTeX
         if (window.MathJax) {
@@ -103,6 +106,27 @@
         console.error(err);
         script.textContent = "Error fetching from API.";
       }
+    }
+
+    async function checkVideoReady(url, videoElem, scriptElem, retries = 20) {
+      for (let i = 0; i < retries; i++) {
+        try {
+          const res = await fetch(url, { method: 'HEAD' });
+          if (res.ok) {
+            videoElem.src = url;
+            scriptElem.textContent = scriptElem.textContent.replace(/\n\nWaiting[\s\S]*/, '');
+            scriptElem.textContent += "\n\n✅ Video is ready!";
+            if (window.MathJax) MathJax.typesetPromise();
+            return;
+          }
+        } catch (e) {
+          console.log("Ping failed, retrying...");
+        }
+        await new Promise(r => setTimeout(r, 15000)); // wait 15s
+        scriptElem.textContent = scriptElem.textContent.replace(/✅.*|Waiting.*/, "Waiting for video... (" + (i + 1) + " tries)");
+      }
+
+      scriptElem.textContent += "\n❌ Video was not ready after several attempts.";
     }
   </script>
 </body>
