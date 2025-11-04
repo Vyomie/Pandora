@@ -1,219 +1,720 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pandora Document Viewer</title>
-<style>
-  html, body {
-    background: #f0f0f3;
-    margin: 0;
-    padding: 0;
-    font-family: "Times New Roman", serif;
-    color: #222;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pandora — Pre-release</title>
 
-  #toolbar {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: rgba(255,255,255,0.95);
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 0.4rem 0.8rem;
-    font-family: sans-serif;
-    z-index: 10;
-  }
-  #toolbar input[type="file"] { display: none; }
-  #toolbar label { cursor: pointer; color: #007acc; text-decoration: underline; }
+  <!-- JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  .page {
-    width: 210mm;
-    min-height: 297mm;
-    margin: 2rem auto;
-    background: #fff;
-    box-shadow: 0 0 15px rgba(0,0,0,0.15);
-    padding: 25mm;
-    box-sizing: border-box;
+  <!-- Optional: host Open Sauce locally and enable below
+  @font-face {
+    font-family: 'OpenSauce';
+    src: url('/fonts/OpenSauce-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
   }
+  -->
+  <style>
+    :root{
+      --bg:#040407;
+      --card: rgba(255,255,255,0.03);
+      --muted: rgba(255,255,255,0.45);
+      --accent1: 210 90% 60%;
+      --accent2: 270 80% 64%;
+      --glass: rgba(255,255,255,0.02);
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      --headline: 'OpenSauce', var(--mono);
+    }
 
-  .columns {
-    column-count: 2;
-    column-gap: 20mm;
-  }
+    /* Reset + base */
+    html,body{ height:100%; }
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: var(--mono);
+      background:
+        radial-gradient(900px 400px at 10% 15%, rgba(120,90,255,0.06), transparent),
+        radial-gradient(700px 300px at 95% 85%, rgba(30,200,255,0.04), transparent),
+        var(--bg);
+      color:#e9eefc;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow-x:hidden;
+      line-height:1.4;
+      scroll-behavior: smooth;
+    }
 
-  .block {
-    break-inside: avoid;
-    margin-bottom: 1.2rem;
-  }
+    /* Layout container */
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:56px 24px;
+    }
 
-  video, img {
-    display: block;
-    margin: 1em auto;
-    border: none;
-    box-shadow: none;
-    max-width: 100%;
-  }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:28px;
+    }
 
-  svg {
-    display: block;
-    max-width: 100%;
-    margin: 0 auto;
-  }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+    }
 
-  pre {
-    background: none;
-    border: none;
-    padding: 0;
-    margin: 0.5rem 0;
-    font-family: "Courier New", monospace;
-    font-size: 1em;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-  }
+    .logo{
+      width:56px;
+      height:56px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      font-weight:700;
+      font-size:20px;
+      color:white;
+      background: linear-gradient(135deg, rgba(140,120,255,0.14), rgba(60,200,255,0.12));
+      box-shadow: 0 8px 36px rgba(100,80,255,0.06), inset 0 -8px 20px rgba(0,0,0,0.6);
+    }
 
-  .error {
-    color: #a33;
-    font-family: monospace;
-    font-size: 0.9em;
-    background: #fff3f3;
-    border: 1px solid #ffcccc;
-    padding: 0.3rem;
-    border-radius: 4px;
-  }
+    .brand h1{
+      margin:0;
+      font-family: var(--headline);
+      font-size:20px;
+      letter-spacing:-0.02em;
+    }
+    .brand p{ margin:0; color:var(--muted); font-size:13px; }
 
-  #loader {
-    text-align: center;
-    color: #777;
-    margin-top: 4rem;
-  }
-</style>
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    nav button{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color:var(--muted);
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    /* INTRO / cinematic entry (centered) */
+    .intro{
+      min-height:70vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      margin-bottom:36px;
+    }
+
+    .intro-inner{
+      max-width:940px;
+      text-align:left;
+      transform-origin:center;
+      will-change: transform, opacity;
+    }
+
+    .eyebrow{
+      text-transform:uppercase;
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:0.18em;
+      margin-bottom:18px;
+    }
+
+    .hero-title{
+      font-family: var(--headline);
+      font-size: clamp(36px, 7.2vw, 88px);
+      line-height:0.9;
+      margin:0 0 14px 0;
+      font-weight:700;
+      color:#fff;
+      text-shadow:
+        0 14px 40px rgba(40,20,120,0.08),
+        0 2px 14px rgba(60,200,255,0.03);
+    }
+
+    .hero-sub{
+      color:var(--muted);
+      margin:0 0 28px 0;
+      max-width:60ch;
+      font-size:16px;
+    }
+
+    .intro-cta{
+      display:flex;
+      gap:12px;
+    }
+
+    .btn{
+      background: linear-gradient(90deg, rgba(140,120,255,0.18), rgba(60,200,255,0.12));
+      border: 1px solid rgba(255,255,255,0.06);
+      padding:12px 18px;
+      border-radius:12px;
+      color:white;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.03); }
+
+    /* sections */
+    section{
+      margin:64px 0;
+      opacity:0;
+      transform: translateY(28px) scale(0.995);
+      will-change: transform, opacity;
+    }
+    section.show{ opacity:1; transform:none; transition: transform 0.9s cubic-bezier(.18,.9,.25,1), opacity 0.7s ease; }
+
+    .section-head{
+      display:flex;
+      align-items:baseline;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .section-head h2{
+      margin:0;
+      font-family: var(--headline);
+      font-size:24px;
+    }
+    .section-head p{ margin:0; color:var(--muted); font-size:14px; }
+
+    /* Team grid */
+    .team-grid{
+      display:grid;
+      grid-template-columns: repeat(3,1fr);
+      gap:18px;
+    }
+    .member{
+      background:var(--card);
+      border-radius:12px;
+      padding:18px;
+      min-height:150px;
+      border:1px solid rgba(255,255,255,0.02);
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .avatar{
+      width:62px;
+      height:62px;
+      border-radius:12px;
+      background:linear-gradient(135deg, rgba(140,120,255,0.12), rgba(60,200,255,0.10));
+      display:grid;
+      place-items:center;
+      font-weight:700;
+      font-size:20px;
+    }
+    .member h4{ margin:0; font-size:16px; }
+    .member p{ margin:4px 0 0 0; color:var(--muted); font-size:13px; }
+
+    /* Motive */
+    .motive{
+      display:flex;
+      gap:18px;
+      align-items:center;
+    }
+    .motive .box{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:12px;
+      padding:18px;
+      flex:1;
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    /* Features grid */
+    .features-grid{
+      display:grid;
+      grid-template-columns: repeat(2,1fr);
+      gap:18px;
+    }
+    .feature{
+      background:var(--card);
+      border-radius:12px;
+      padding:18px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    /* Phone mockup + carousel */
+    .phone-row{
+      display:flex;
+      gap:28px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .phone{
+      width:300px;
+      height:640px;
+      border-radius:36px;
+      padding:18px;
+      background:linear-gradient(180deg, rgba(10,10,12,0.9), rgba(0,0,0,0.6));
+      box-shadow: 0 40px 120px rgba(0,0,0,0.7), inset 0 -20px 60px rgba(0,0,0,0.6);
+      border:1px solid rgba(255,255,255,0.03);
+      position:relative;
+    }
+    .screen{
+      width:100%;
+      height:100%;
+      border-radius:26px;
+      overflow:hidden;
+      background:#0b0b0d;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+    .slides{
+      width:100%;
+      height:100%;
+      position:relative;
+    }
+    .slide{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      opacity:0;
+      transform:scale(0.98);
+      transition: opacity 600ms ease, transform 700ms cubic-bezier(.2,.9,.25,1);
+      background-size:cover;
+      background-position:center;
+    }
+    .slide.show{ opacity:1; transform:none; }
+
+    .carousel-controls{
+      position:absolute;
+      bottom:12px;
+      left:50%;
+      transform:translateX(-50%);
+      display:flex;
+      gap:8px;
+      z-index:10;
+    }
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.12);
+      border:1px solid rgba(255,255,255,0.03);
+      cursor:pointer;
+    }
+    .dot.active{ background: linear-gradient(90deg, rgba(140,120,255,0.9), rgba(60,200,255,0.9)); box-shadow:0 6px 18px rgba(100,80,255,0.12); }
+
+    /* Feature differences column */
+    .diffs{
+      flex:1;
+      min-width:260px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .diff{
+      background:var(--card);
+      padding:12px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    /* Signup */
+    .signup{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      padding:20px;
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.03);
+      flex-wrap:wrap;
+    }
+    .signup .left{ flex:1; min-width:220px; }
+    .signup form{ display:flex; gap:10px; align-items:center; }
+    .input{
+      background: rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.03);
+      padding:10px 12px;
+      border-radius:10px;
+      color:#fff;
+      outline:none;
+      font-family:var(--mono);
+    }
+    .small{ font-size:13px; color:var(--muted); margin-top:8px; }
+
+    footer{ margin-top:48px; color:var(--muted); text-align:center; font-size:13px; padding-bottom:40px; }
+
+    /* Responsive */
+    @media (max-width:980px){
+      .team-grid{ grid-template-columns: repeat(2,1fr); }
+      .features-grid{ grid-template-columns: 1fr; }
+      .phone-row{ flex-direction:column; align-items:center; }
+      .phone{ width:260px; height:560px; }
+    }
+    @media (max-width:640px){
+      .team-grid{ grid-template-columns: 1fr; }
+      header{ flex-direction:column; align-items:flex-start; gap:12px; }
+      .intro{ padding:20px 0; }
+      .hero-title{ font-size: clamp(28px, 9vw, 44px); }
+    }
+
+    /* small helper */
+    .muted{ color:var(--muted); font-size:13px; }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <div class="brand" aria-label="Pandora brand">
+        <div class="logo">P</div>
+        <div>
+          <h1>Pandora</h1>
+          <p>Pre-release • Education • AI</p>
+        </div>
+      </div>
+      <nav>
+        <button id="nav-signup" aria-controls="signup">Notify me</button>
+      </nav>
+    </header>
 
-<div id="toolbar">
-  <label for="fileInput">Open .pandora</label>
-  <input type="file" id="fileInput" accept=".pandora">
-</div>
+    <!-- INTRO: cinematic entry -->
+    <section class="intro" id="intro">
+      <div class="intro-inner" id="intro-inner" aria-hidden="false">
+        <div class="eyebrow">Reimagining learning</div>
+        <h1 class="hero-title">Adaptive learning that understands you</h1>
+        <p class="hero-sub">Pandora surfaces the next best step for every learner with micro-feedback, collaborative exercises, and context-aware hints — designed to teach comprehension, not memorization.</p>
+        <div class="intro-cta">
+          <button class="btn" id="cta-early">Join Beta</button>
+          <button class="btn ghost" id="cta-features">See Features</button>
+        </div>
+      </div>
+    </section>
 
-<div id="document"></div>
+    <!-- Our Team -->
+    <section id="team" aria-labelledby="team-title">
+      <div class="section-head">
+        <h2 id="team-title">Our Team</h2>
+        <p>Small team, big education-first thinking.</p>
+      </div>
+      <div class="team-grid">
+        <div class="member">
+          <div class="avatar">AB</div>
+          <div>
+            <h4>A. Brown</h4>
+            <p class="muted">Founder & learning scientist</p>
+          </div>
+        </div>
+        <div class="member">
+          <div class="avatar">CM</div>
+          <div>
+            <h4>C. Miller</h4>
+            <p class="muted">Product & design</p>
+          </div>
+        </div>
+        <div class="member">
+          <div class="avatar">SS</div>
+          <div>
+            <h4>S. Singh</h4>
+            <p class="muted">Engineering & ML</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-<script>
-(async function(){
-  const docContainer = document.getElementById('document');
-  const input = document.getElementById('fileInput');
+    <!-- Our Motive -->
+    <section id="motive" aria-labelledby="motive-title">
+      <div class="section-head">
+        <h2 id="motive-title">Our Motive</h2>
+        <p>Make understanding repeatable and joyful.</p>
+      </div>
+      <div class="motive">
+        <div class="box">
+          <h4>Why we exist</h4>
+          <p class="muted">Traditional systems reward recall over reasoning. Pandora emphasizes explanation, reflection, and graduated practice—so learners build mental models that last.</p>
+        </div>
+        <div class="box">
+          <h4>How we work</h4>
+          <p class="muted">We combine pedagogical research with lightweight AI feedback loops to create motivating pathways tailored to each learner's successful steps.</p>
+        </div>
+      </div>
+    </section>
 
-  input.addEventListener('change', e=>{
-    if(e.target.files.length) loadPandora(e.target.files[0]);
-  });
+    <!-- Features -->
+    <section id="features" aria-labelledby="features-title">
+      <div class="section-head">
+        <h2 id="features-title">Features</h2>
+        <p>Built for learning outcomes.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature">
+          <h4>Smart Learning Paths</h4>
+          <p class="muted">Adaptive sequences that choose the next best practice for the learner’s current understanding.</p>
+        </div>
+        <div class="feature">
+          <h4>Micro-feedback</h4>
+          <p class="muted">Short, actionable feedback to support reflection and improved recall.</p>
+        </div>
+        <div class="feature">
+          <h4>AI Assistant</h4>
+          <p class="muted">Context-aware hints that nudge learners without giving answers away.</p>
+        </div>
+        <div class="feature">
+          <h4>Collaborative Workspaces</h4>
+          <p class="muted">Peer tasks and remixable problem sets for social learning.</p>
+        </div>
+      </div>
+    </section>
 
-  document.body.addEventListener('dragover', e=>e.preventDefault());
-  document.body.addEventListener('drop', e=>{
-    e.preventDefault();
-    const f = e.dataTransfer.files[0];
-    if(f && f.name.endsWith('.pandora')) loadPandora(f);
-  });
+    <!-- Phone mockup + differences -->
+    <section id="mockup" aria-labelledby="mockup-title">
+      <div class="section-head">
+        <h2 id="mockup-title">See it in a phone</h2>
+        <p>Real screenshots inside the Pandora phone preview.</p>
+      </div>
 
-  async function loadPandora(file){
-    docContainer.innerHTML = '<div id="loader">Loading...</div>';
+      <div class="phone-row">
+        <div class="phone" role="img" aria-label="Phone preview">
+          <div class="screen">
+            <div class="slides" id="slides">
+              <!-- Replace with real screenshots: background-image: url('path') -->
+              <div class="slide" style="background-image:url('https://picsum.photos/420/800?random=101')"></div>
+              <div class="slide" style="background-image:url('https://picsum.photos/420/800?random=102')"></div>
+              <div class="slide" style="background-image:url('https://picsum.photos/420/800?random=103')"></div>
+            </div>
+            <div class="carousel-controls" id="dots"></div>
+          </div>
+        </div>
 
-    const buf = await file.arrayBuffer();
-    const zip = await JSZip.loadAsync(buf);
-    const metaFile = zip.file('meta.json');
-    if(!metaFile){
-      docContainer.innerHTML = '<div class="error">meta.json not found</div>';
-      return;
-    }
+        <div class="diffs">
+          <div class="diff">
+            <h4>How it's different</h4>
+            <p class="muted">Focus on comprehension: hints that scaffold, not solve. Practice that spaces learning over recall-only tasks.</p>
+          </div>
 
-    const meta = JSON.parse(await metaFile.async('string'));
-    const seq = meta.sequence || [];
+          <div class="diff">
+            <h4>Instant reflection</h4>
+            <p class="muted">After each activity, short prompts guide learners to articulate understanding.</p>
+          </div>
 
-    // preload all blobs like before
-    const entries = {};
-    await Promise.all(Object.keys(zip.files).map(async k=>{
-      if(k === 'meta.json') return;
-      const f = zip.files[k];
-      if(f.dir) return;
-      const blob = await f.async('blob');
-      entries[k] = URL.createObjectURL(blob);
-    }));
+          <div class="diff">
+            <h4>Teacher-friendly</h4>
+            <p class="muted">Exportable reports and suggested next steps for instructors.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    docContainer.innerHTML = '';
-    let page = createPage(meta.layout);
-    docContainer.appendChild(page);
+    <!-- Signup -->
+    <section id="signup" aria-labelledby="signup-title">
+      <div class="section-head">
+        <h2 id="signup-title">Be first to try Pandora</h2>
+        <p>Sign up and we’ll notify you when the beta opens.</p>
+      </div>
 
-    for(const item of seq){
-      // Check for explicit or inline pagebreak
-      if(item.pagebreak || (item.text && /\\(newpage|pagebreak)/.test(item.text))){
-        page = createPage(meta.layout);
-        docContainer.appendChild(page);
-        continue;
+      <div class="signup" role="form" aria-label="signup area">
+        <div class="left">
+          <strong>Get early access</strong>
+          <div class="small">We will send one email when the beta opens. No spam.</div>
+        </div>
+
+        <form id="signup-form">
+          <input id="signup-email" class="input" type="email" name="user_email" placeholder="you@domain.com" required aria-label="email" />
+          <button class="btn" type="submit">Notify me</button>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      <div>© Pandora — built with care</div>
+    </footer>
+  </div>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js"></script>
+
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+  <script>
+    // ---------- GSAP Cinematic Intro + Scroll Reveals ----------
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Intro entrance: large cinematic timeline
+    const introTimeline = gsap.timeline();
+    // initial mask/scale/opacity animation to mimic Camille-style enter
+    introTimeline.from("#intro-inner", {
+      y: 40,
+      opacity: 0,
+      scale: 0.995,
+      duration: 1.05,
+      ease: "power3.out",
+    });
+
+    // Add subtle staggered char/line reveal feel (simulate)
+    introTimeline.from(".hero-title", { y: 10, opacity: 0, duration: 0.9, ease: "power3.out" }, "-=0.8");
+    introTimeline.from(".hero-sub", { y: 10, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.65");
+    introTimeline.from(".intro-cta button", { y: 6, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power3.out" }, "-=0.5");
+
+    // Scroll-triggered section reveals (staggered)
+    document.querySelectorAll("section").forEach((sec, i) => {
+      ScrollTrigger.create({
+        trigger: sec,
+        start: "top 85%",
+        onEnter: () => sec.classList.add("show"),
+        onEnterBack: () => sec.classList.add("show"),
+      });
+
+      // For cards inside like team members, features, slides, animate children
+      const cards = sec.querySelectorAll(".member, .feature, .diff, .slide, .phone, .team-grid > *");
+      if (cards.length) {
+        gsap.from(cards, {
+          scrollTrigger: { trigger: sec, start: "top 85%" },
+          y: 26,
+          opacity: 0,
+          duration: 0.9,
+          stagger: 0.12,
+          ease: "power3.out",
+        });
+      }
+    });
+
+    // CTA button wiring
+    document.getElementById('cta-early').addEventListener('click', ()=> {
+      document.getElementById('signup').scrollIntoView({behavior:'smooth'});
+      document.getElementById('signup-email').focus();
+    });
+    document.getElementById('cta-features').addEventListener('click', ()=> {
+      document.getElementById('features').scrollIntoView({behavior:'smooth'});
+    });
+    document.getElementById('nav-signup').addEventListener('click', ()=> {
+      document.getElementById('signup').scrollIntoView({behavior:'smooth'});
+      document.getElementById('signup-email').focus();
+    });
+
+    // ---------- Phone carousel ----------
+    (function initCarousel(){
+      const slides = document.querySelectorAll('.slide');
+      const dotsWrap = document.getElementById('dots');
+      let idx = 0;
+      let timer = null;
+      const len = slides.length;
+
+      // create dots
+      for (let i=0;i<len;i++){
+        const d = document.createElement('div');
+        d.className = 'dot';
+        d.dataset.i = i;
+        d.addEventListener('click', ()=> goTo(parseInt(d.dataset.i)));
+        dotsWrap.appendChild(d);
+      }
+      const dots = dotsWrap.querySelectorAll('.dot');
+
+      function show(i){
+        slides.forEach((s, j)=>{
+          if(j===i){
+            s.classList.add('show');
+          } else s.classList.remove('show');
+        });
+        dots.forEach((d, j)=> d.classList.toggle('active', j===i));
       }
 
-      const block = document.createElement('div');
-      block.className = 'block';
-
-      try {
-        if(item.type === 'latex'){
-          if(item.rendered && entries[item.rendered]){
-            const img = document.createElement('img');
-            img.src = entries[item.rendered];
-            block.appendChild(img);
-          } else {
-            const pre = document.createElement('pre');
-            let latexSource = item.file && zip.file(item.file)
-              ? await zip.file(item.file).async('string')
-              : item.text || '(empty LaTeX block)';
-            pre.textContent = latexSource;
-            block.appendChild(pre);
-            await MathJax.typesetPromise([pre]);
-          }
-        } else if(item.type === 'video'){
-          const vid = document.createElement('video');
-          if(entries[item.file]) vid.src = entries[item.file];
-          vid.loop = true;
-          vid.autoplay = true;
-          vid.muted = true;
-          vid.playsInline = true;
-          vid.controls = false;
-
-          // custom sizing
-          if(item.width) vid.style.width = item.width;
-          if(item.height) vid.style.height = item.height;
-          if(item.scale) vid.style.width = (parseFloat(item.scale)*100)+'%';
-
-          block.appendChild(vid);
-        } else if(item.type === 'image'){
-          const img = document.createElement('img');
-          if(entries[item.file]) img.src = entries[item.file];
-          if(item.width) img.style.width = item.width;
-          if(item.height) img.style.height = item.height;
-          if(item.scale) img.style.width = (parseFloat(item.scale)*100)+'%';
-          block.appendChild(img);
-        }
-      } catch (err){
-        const ebox = document.createElement('div');
-        ebox.className='error';
-        ebox.textContent = '[Error rendering block: ' + err.message + ']';
-        block.appendChild(ebox);
+      function goTo(i){
+        idx = (i + len) % len;
+        show(idx);
+        restart();
       }
 
-      page.querySelector('.page-body').appendChild(block);
-    }
-  }
+      function next(){
+        idx = (idx + 1) % len;
+        show(idx);
+      }
 
-  function createPage(layout){
-    const page = document.createElement('div');
-    page.className = 'page';
-    const body = document.createElement('div');
-    body.className = 'page-body';
-    if(layout === 'two-column' || /two.?column/i.test(layout)) body.classList.add('columns');
-    page.appendChild(body);
-    return page;
-  }
-})();
-</script>
+      function restart(){
+        if(timer) clearInterval(timer);
+        timer = setInterval(next, 3500);
+      }
+
+      // init
+      show(idx);
+      restart();
+
+      // pause on hover (for touch devices we skip)
+      const phone = document.querySelector('.phone');
+      phone.addEventListener('mouseenter', ()=> clearInterval(timer));
+      phone.addEventListener('mouseleave', restart);
+    })();
+
+    // ---------- EmailJS (client-side) ----------
+    (function(){
+      // initialize EmailJS - replace with your public key
+      emailjs.init("YOUR_EMAILJS_USER_ID"); // e.g. user_xxx from EmailJS dashboard
+
+      const form = document.getElementById('signup-form');
+      const input = document.getElementById('signup-email');
+
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const emailVal = input.value.trim();
+        if(!emailVal) return;
+
+        // prepare template params - configure your email template to map these
+        const templateParams = {
+          user_email: emailVal,
+          timestamp: new Date().toISOString(),
+          app_name: 'Pandora'
+        };
+
+        // Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with your EmailJS values
+        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+          .then(function(response){
+            // success UI
+            showToast('Thanks — you’re on the list!');
+            input.value = '';
+          }, function(error){
+            console.error('EmailJS error:', error);
+            showToast('Something went wrong. Please try again later.');
+          });
+      });
+
+      // small toast helper
+      function showToast(msg){
+        const t = document.createElement('div');
+        t.textContent = msg;
+        t.style.position='fixed';
+        t.style.left='50%';
+        t.style.bottom='36px';
+        t.style.transform='translateX(-50%)';
+        t.style.background='linear-gradient(90deg, rgba(140,120,255,0.14), rgba(60,200,255,0.12))';
+        t.style.padding='12px 18px';
+        t.style.borderRadius='12px';
+        t.style.boxShadow='0 10px 30px rgba(0,0,0,0.6)';
+        t.style.color='#fff';
+        t.style.zIndex=9999;
+        document.body.appendChild(t);
+        setTimeout(()=> {
+          t.style.transition='opacity 400ms';
+          t.style.opacity=0;
+        }, 1600);
+        setTimeout(()=> { try{ t.remove(); }catch(e){} }, 2200);
+      }
+    })();
+
+    // small accessibility: focus outline toggle
+    (function(){
+      let mouseUsed = false;
+      window.addEventListener('mousedown', ()=> mouseUsed=true);
+      window.addEventListener('keydown', (e)=> {
+        if(e.key === 'Tab') mouseUsed = false;
+      });
+      document.addEventListener('focusin', (e)=>{
+        if(!mouseUsed) e.target.classList.add('focus-visible');
+      });
+      document.addEventListener('focusout', (e)=>{
+        e.target.classList.remove('focus-visible');
+      });
+    })();
+  </script>
 </body>
 </html>
