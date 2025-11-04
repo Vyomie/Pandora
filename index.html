@@ -1,418 +1,260 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pandora — Pre-release</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pandora — Pre-release</title>
 
-  <!-- JetBrains Mono -->
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+<!-- JetBrains Mono (body/mono). Host Open Sauce locally if you want for headings -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Optional: host Open Sauce locally and enable below
-  @font-face {
-    font-family: 'OpenSauce';
-    src: url('/fonts/OpenSauce-Regular.woff2') format('woff2');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
+<style>
+  :root{
+    --bg:#000; /* true pitch black */
+    --muted: rgba(255,255,255,0.42);
+    --glass: rgba(255,255,255,0.02);
+    --accent1: 255 160 255; /* used in CSS as rgb parts */
+    --accent2: 60 200 255;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    --headline: var(--mono); /* switch to Open Sauce if self-hosted */
   }
-  -->
-  <style>
-    :root{
-      --bg:#040407;
-      --card: rgba(255,255,255,0.03);
-      --muted: rgba(255,255,255,0.45);
-      --accent1: 210 90% 60%;
-      --accent2: 270 80% 64%;
-      --glass: rgba(255,255,255,0.02);
-      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-      --headline: 'OpenSauce', var(--mono);
-    }
 
-    /* Reset + base */
-    html,body{ height:100%; }
-    *{ box-sizing: border-box; }
-    body{
-      margin:0;
-      font-family: var(--mono);
-      background:
-        radial-gradient(900px 400px at 10% 15%, rgba(120,90,255,0.06), transparent),
-        radial-gradient(700px 300px at 95% 85%, rgba(30,200,255,0.04), transparent),
-        var(--bg);
-      color:#e9eefc;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      overflow-x:hidden;
-      line-height:1.4;
-      scroll-behavior: smooth;
-    }
+  /* Base */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:#e9eefc;
+    font-family:var(--mono);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    overflow-x:hidden;
+    line-height:1.4;
+  }
 
-    /* Layout container */
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:56px 24px;
-    }
+  /* little container */
+  .wrap{
+    max-width:1100px;
+    margin:0 auto;
+    padding:48px 20px;
+  }
 
-    header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:28px;
-    }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding-top:6px;
+    padding-bottom:12px;
+  }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:14px;
-    }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .logo{
+    width:54px; height:54px; border-radius:12px;
+    display:grid; place-items:center; font-weight:700;
+    background: linear-gradient(135deg, rgba(255,160,255,0.06), rgba(60,200,255,0.04));
+    color:white; font-size:20px;
+  }
+  .brand h1{ margin:0; font-family:var(--headline); font-size:18px; }
+  .brand p{ margin:0; color:var(--muted); font-size:12px; }
 
-    .logo{
-      width:56px;
-      height:56px;
-      border-radius:12px;
-      display:grid;
-      place-items:center;
-      font-weight:700;
-      font-size:20px;
-      color:white;
-      background: linear-gradient(135deg, rgba(140,120,255,0.14), rgba(60,200,255,0.12));
-      box-shadow: 0 8px 36px rgba(100,80,255,0.06), inset 0 -8px 20px rgba(0,0,0,0.6);
-    }
+  nav button{
+    background:transparent;
+    border:1px solid rgba(255,255,255,0.06);
+    color:var(--muted);
+    padding:8px 12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+  }
 
-    .brand h1{
-      margin:0;
-      font-family: var(--headline);
-      font-size:20px;
-      letter-spacing:-0.02em;
-    }
-    .brand p{ margin:0; color:var(--muted); font-size:13px; }
+  /* ---------- PARALLAX LAYERS (background) ---------- */
+  .parallax-wrap{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    overflow:visible;
+  }
 
-    nav button{
-      background:transparent;
-      border:1px solid rgba(255,255,255,0.06);
-      color:var(--muted);
-      padding:10px 14px;
-      border-radius:10px;
-      cursor:pointer;
-    }
+  .layer{
+    position:absolute;
+    left:50%; transform:translateX(-50%);
+    will-change:transform,opacity;
+    mix-blend-mode:screen;
+    opacity:0.14;
+  }
 
-    /* INTRO / cinematic entry (centered) */
-    .intro{
-      min-height:70vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-      margin-bottom:36px;
-    }
+  /* two subtle radial glows */
+  .layer.layer-a{ top:6vh; width:1200px; height:800px;
+    background: radial-gradient(closest-side, rgba(255,160,255,0.22), transparent 40%); filter: blur(80px);
+  }
+  .layer.layer-b{ bottom:6vh; width:900px; height:600px;
+    background: radial-gradient(closest-side, rgba(60,200,255,0.10), transparent 30%); filter: blur(100px);
+  }
 
-    .intro-inner{
-      max-width:940px;
-      text-align:left;
-      transform-origin:center;
-      will-change: transform, opacity;
-    }
+  /* hero / intro */
+  .intro{
+    min-height:72vh;
+    display:flex;
+    align-items:center;
+    padding-top:28px;
+    padding-bottom:28px;
+  }
 
-    .eyebrow{
-      text-transform:uppercase;
-      color:var(--muted);
-      font-size:12px;
-      letter-spacing:0.18em;
-      margin-bottom:18px;
-    }
+  .hero-inner{ max-width:880px; }
 
-    .hero-title{
-      font-family: var(--headline);
-      font-size: clamp(36px, 7.2vw, 88px);
-      line-height:0.9;
-      margin:0 0 14px 0;
-      font-weight:700;
-      color:#fff;
-      text-shadow:
-        0 14px 40px rgba(40,20,120,0.08),
-        0 2px 14px rgba(60,200,255,0.03);
-    }
+  .kicker{ color:var(--muted); text-transform:uppercase; letter-spacing:0.18em; font-size:12px; margin-bottom:14px }
+  .hero-title{
+    font-family:var(--headline);
+    font-size: clamp(34px, 7.4vw, 78px);
+    margin:0 0 12px 0;
+    line-height:0.92;
+    text-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  }
+  .hero-sub{ margin:0 0 22px 0; color:var(--muted); font-size:15px; max-width:64ch }
 
-    .hero-sub{
-      color:var(--muted);
-      margin:0 0 28px 0;
-      max-width:60ch;
-      font-size:16px;
-    }
+  .cta-row{ display:flex; gap:12px; align-items:center; }
+  .btn{
+    background:linear-gradient(90deg, rgba(255,160,255,0.14), rgba(60,200,255,0.10));
+    border:1px solid rgba(255,255,255,0.06);
+    padding:12px 16px; border-radius:12px; color:white; cursor:pointer; font-weight:700;
+  }
+  .btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.03) }
 
-    .intro-cta{
-      display:flex;
-      gap:12px;
-    }
+  /* section base (reveal with GSAP) */
+  section{ margin:68px 0; opacity:0; transform:translateY(26px) scale(0.996); will-change:transform,opacity; }
+  section.show{ opacity:1; transform:none; transition: opacity .7s ease, transform .9s cubic-bezier(.18,.9,.25,1) }
 
-    .btn{
-      background: linear-gradient(90deg, rgba(140,120,255,0.18), rgba(60,200,255,0.12));
-      border: 1px solid rgba(255,255,255,0.06);
-      padding:12px 18px;
-      border-radius:12px;
-      color:white;
-      cursor:pointer;
-      font-weight:700;
-    }
-    .btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.03); }
+  .section-head{ display:flex; gap:16px; align-items:baseline; margin-bottom:16px }
+  .section-head h2{ margin:0; font-size:20px; font-family:var(--headline) }
+  .section-head p{ margin:0; color:var(--muted); font-size:13px }
 
-    /* sections */
-    section{
-      margin:64px 0;
-      opacity:0;
-      transform: translateY(28px) scale(0.995);
-      will-change: transform, opacity;
-    }
-    section.show{ opacity:1; transform:none; transition: transform 0.9s cubic-bezier(.18,.9,.25,1), opacity 0.7s ease; }
+  /* team */
+  .team-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:16px }
+  .member{
+    background:transparent;
+    border-radius:12px; padding:14px;
+    border:1px solid rgba(255,255,255,0.03);
+    display:flex; gap:12px; align-items:center;
+    transform-origin:center; will-change:transform,box-shadow;
+  }
+  .avatar{ width:56px; height:56px; border-radius:10px; display:grid; place-items:center; font-weight:700; font-size:18px; background:linear-gradient(135deg, rgba(255,160,255,0.06), rgba(60,200,255,0.04)) }
+  .member h4{ margin:0; }
+  .member p{ margin:4px 0 0 0; color:var(--muted); font-size:13px }
 
-    .section-head{
-      display:flex;
-      align-items:baseline;
-      gap:16px;
-      margin-bottom:18px;
-    }
-    .section-head h2{
-      margin:0;
-      font-family: var(--headline);
-      font-size:24px;
-    }
-    .section-head p{ margin:0; color:var(--muted); font-size:14px; }
+  /* motive */
+  .motive{ display:flex; gap:16px; }
+  .motive .card{ flex:1; padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); background:transparent }
 
-    /* Team grid */
-    .team-grid{
-      display:grid;
-      grid-template-columns: repeat(3,1fr);
-      gap:18px;
-    }
-    .member{
-      background:var(--card);
-      border-radius:12px;
-      padding:18px;
-      min-height:150px;
-      border:1px solid rgba(255,255,255,0.02);
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-    .avatar{
-      width:62px;
-      height:62px;
-      border-radius:12px;
-      background:linear-gradient(135deg, rgba(140,120,255,0.12), rgba(60,200,255,0.10));
-      display:grid;
-      place-items:center;
-      font-weight:700;
-      font-size:20px;
-    }
-    .member h4{ margin:0; font-size:16px; }
-    .member p{ margin:4px 0 0 0; color:var(--muted); font-size:13px; }
+  /* features */
+  .features-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap:16px }
+  .feature{ padding:16px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); background:transparent }
 
-    /* Motive */
-    .motive{
-      display:flex;
-      gap:18px;
-      align-items:center;
-    }
-    .motive .box{
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:12px;
-      padding:18px;
-      flex:1;
-      border:1px solid rgba(255,255,255,0.03);
-    }
+  /* phone mockup and carousel */
+  .phone-row{ display:flex; gap:28px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap }
+  .phone{
+    width:300px; height:640px; border-radius:42px; padding:18px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 -20px 40px rgba(0,0,0,0.6);
+    border:1px solid rgba(255,255,255,0.03);
+  }
+  .screen{ width:100%; height:100%; border-radius:28px; overflow:hidden; background:#050507; position:relative; display:flex; align-items:center; justify-content:center; }
+  .slides{ width:100%; height:100%; position:relative }
+  .slide{
+    position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transform:scale(0.98); transition:opacity .6s ease, transform .8s cubic-bezier(.2,.9,.25,1)
+  }
+  .slide.show{ opacity:1; transform:none }
+  .dots{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:10 }
+  .dot{ width:8px; height:8px; border-radius:999px; background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.03); cursor:pointer }
+  .dot.active{ background:linear-gradient(90deg, rgba(255,160,255,0.95), rgba(60,200,255,0.95)); box-shadow:0 6px 18px rgba(100,80,255,0.12) }
 
-    /* Features grid */
-    .features-grid{
-      display:grid;
-      grid-template-columns: repeat(2,1fr);
-      gap:18px;
-    }
-    .feature{
-      background:var(--card);
-      border-radius:12px;
-      padding:18px;
-      border:1px solid rgba(255,255,255,0.02);
-    }
+  .diffs{ flex:1; min-width:260px; display:flex; flex-direction:column; gap:12px }
+  .diff{ padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.03) }
 
-    /* Phone mockup + carousel */
-    .phone-row{
-      display:flex;
-      gap:28px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-    .phone{
-      width:300px;
-      height:640px;
-      border-radius:36px;
-      padding:18px;
-      background:linear-gradient(180deg, rgba(10,10,12,0.9), rgba(0,0,0,0.6));
-      box-shadow: 0 40px 120px rgba(0,0,0,0.7), inset 0 -20px 60px rgba(0,0,0,0.6);
-      border:1px solid rgba(255,255,255,0.03);
-      position:relative;
-    }
-    .screen{
-      width:100%;
-      height:100%;
-      border-radius:26px;
-      overflow:hidden;
-      background:#0b0b0d;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      position:relative;
-    }
-    .slides{
-      width:100%;
-      height:100%;
-      position:relative;
-    }
-    .slide{
-      position:absolute;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      opacity:0;
-      transform:scale(0.98);
-      transition: opacity 600ms ease, transform 700ms cubic-bezier(.2,.9,.25,1);
-      background-size:cover;
-      background-position:center;
-    }
-    .slide.show{ opacity:1; transform:none; }
+  /* signup */
+  .signup{ display:flex; gap:14px; align-items:center; padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.03) }
+  .signup .left{ flex:1 }
+  .input{ padding:10px 12px; border-radius:10px; background:transparent; border:1px solid rgba(255,255,255,0.04); color:#fff; outline:none; min-width:220px }
+  .small{ font-size:13px; color:var(--muted); margin-top:8px }
 
-    .carousel-controls{
-      position:absolute;
-      bottom:12px;
-      left:50%;
-      transform:translateX(-50%);
-      display:flex;
-      gap:8px;
-      z-index:10;
-    }
-    .dot{
-      width:8px;
-      height:8px;
-      border-radius:999px;
-      background: rgba(255,255,255,0.12);
-      border:1px solid rgba(255,255,255,0.03);
-      cursor:pointer;
-    }
-    .dot.active{ background: linear-gradient(90deg, rgba(140,120,255,0.9), rgba(60,200,255,0.9)); box-shadow:0 6px 18px rgba(100,80,255,0.12); }
+  footer{ margin-top:48px; padding-bottom:36px; color:var(--muted); text-align:center; font-size:13px }
 
-    /* Feature differences column */
-    .diffs{
-      flex:1;
-      min-width:260px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
-    .diff{
-      background:var(--card);
-      padding:12px;
-      border-radius:10px;
-      border:1px solid rgba(255,255,255,0.02);
-    }
+  /* tiny hover tilt effect helper */
+  .tilt{ transition: transform 300ms cubic-bezier(.2,.9,.25,1); will-change:transform }
 
-    /* Signup */
-    .signup{
-      display:flex;
-      gap:14px;
-      align-items:center;
-      justify-content:space-between;
-      padding:20px;
-      border-radius:12px;
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.03);
-      flex-wrap:wrap;
-    }
-    .signup .left{ flex:1; min-width:220px; }
-    .signup form{ display:flex; gap:10px; align-items:center; }
-    .input{
-      background: rgba(255,255,255,0.02);
-      border:1px solid rgba(255,255,255,0.03);
-      padding:10px 12px;
-      border-radius:10px;
-      color:#fff;
-      outline:none;
-      font-family:var(--mono);
-    }
-    .small{ font-size:13px; color:var(--muted); margin-top:8px; }
-
-    footer{ margin-top:48px; color:var(--muted); text-align:center; font-size:13px; padding-bottom:40px; }
-
-    /* Responsive */
-    @media (max-width:980px){
-      .team-grid{ grid-template-columns: repeat(2,1fr); }
-      .features-grid{ grid-template-columns: 1fr; }
-      .phone-row{ flex-direction:column; align-items:center; }
-      .phone{ width:260px; height:560px; }
-    }
-    @media (max-width:640px){
-      .team-grid{ grid-template-columns: 1fr; }
-      header{ flex-direction:column; align-items:flex-start; gap:12px; }
-      .intro{ padding:20px 0; }
-      .hero-title{ font-size: clamp(28px, 9vw, 44px); }
-    }
-
-    /* small helper */
-    .muted{ color:var(--muted); font-size:13px; }
-  </style>
+  /* responsive */
+  @media (max-width:980px){
+    .team-grid{ grid-template-columns: repeat(2,1fr) }
+    .features-grid{ grid-template-columns: 1fr }
+    .phone{ width:260px; height:540px }
+  }
+  @media (max-width:640px){
+    .team-grid{ grid-template-columns:1fr }
+    header{ flex-direction:column; align-items:flex-start; gap:12px }
+    .motive{ flex-direction:column }
+    .phone-row{ flex-direction:column; align-items:center }
+  }
+</style>
 </head>
 <body>
+
+  <!-- parallax BG layers -->
+  <div class="parallax-wrap" aria-hidden="true">
+    <div class="layer layer-a" id="layerA"></div>
+    <div class="layer layer-b" id="layerB"></div>
+  </div>
+
   <div class="wrap">
     <header>
-      <div class="brand" aria-label="Pandora brand">
+      <div class="brand">
         <div class="logo">P</div>
         <div>
           <h1>Pandora</h1>
-          <p>Pre-release • Education • AI</p>
+          <p>Pre-release · Education</p>
         </div>
       </div>
       <nav>
-        <button id="nav-signup" aria-controls="signup">Notify me</button>
+        <button id="jmp-signup">Notify me</button>
       </nav>
     </header>
 
-    <!-- INTRO: cinematic entry -->
+    <!-- INTRO -->
     <section class="intro" id="intro">
-      <div class="intro-inner" id="intro-inner" aria-hidden="false">
-        <div class="eyebrow">Reimagining learning</div>
+      <div class="hero-inner">
+        <div class="kicker">Reimagining learning</div>
         <h1 class="hero-title">Adaptive learning that understands you</h1>
-        <p class="hero-sub">Pandora surfaces the next best step for every learner with micro-feedback, collaborative exercises, and context-aware hints — designed to teach comprehension, not memorization.</p>
-        <div class="intro-cta">
-          <button class="btn" id="cta-early">Join Beta</button>
-          <button class="btn ghost" id="cta-features">See Features</button>
+        <p class="hero-sub">Pandora surfaces the next best step for every learner with micro-feedback, contextual hints, and collaborative activities — designed to build understanding, not just recall.</p>
+        <div class="cta-row">
+          <button class="btn" id="joinBtn">Join Beta</button>
+          <button class="btn ghost" id="seeFeatures">See Features</button>
         </div>
       </div>
     </section>
 
-    <!-- Our Team -->
-    <section id="team" aria-labelledby="team-title">
+    <!-- OUR TEAM -->
+    <section id="team">
       <div class="section-head">
-        <h2 id="team-title">Our Team</h2>
-        <p>Small team, big education-first thinking.</p>
+        <h2>Our Team</h2>
+        <p>Small team, big emphasis on pedagogy and product.</p>
       </div>
       <div class="team-grid">
-        <div class="member">
+        <div class="member tilt" data-tilt>
           <div class="avatar">AB</div>
           <div>
             <h4>A. Brown</h4>
-            <p class="muted">Founder & learning scientist</p>
+            <p class="muted">Founder & Learning Scientist</p>
           </div>
         </div>
-        <div class="member">
+        <div class="member tilt" data-tilt>
           <div class="avatar">CM</div>
           <div>
             <h4>C. Miller</h4>
-            <p class="muted">Product & design</p>
+            <p class="muted">Product & Design</p>
           </div>
         </div>
-        <div class="member">
+        <div class="member tilt" data-tilt>
           <div class="avatar">SS</div>
           <div>
             <h4>S. Singh</h4>
@@ -422,299 +264,325 @@
       </div>
     </section>
 
-    <!-- Our Motive -->
-    <section id="motive" aria-labelledby="motive-title">
+    <!-- OUR MOTIVE -->
+    <section id="motive">
       <div class="section-head">
-        <h2 id="motive-title">Our Motive</h2>
+        <h2>Our Motive</h2>
         <p>Make understanding repeatable and joyful.</p>
       </div>
       <div class="motive">
-        <div class="box">
-          <h4>Why we exist</h4>
-          <p class="muted">Traditional systems reward recall over reasoning. Pandora emphasizes explanation, reflection, and graduated practice—so learners build mental models that last.</p>
+        <div class="card">
+          <h4>Pedagogy-first</h4>
+          <p class="muted">We prioritize research-backed instructional strategies that produce durable learning.</p>
         </div>
-        <div class="box">
-          <h4>How we work</h4>
-          <p class="muted">We combine pedagogical research with lightweight AI feedback loops to create motivating pathways tailored to each learner's successful steps.</p>
+        <div class="card">
+          <h4>Human-centered AI</h4>
+          <p class="muted">Assistive hints and scaffolds — not shortcuts. Our models aim to teach process and reasoning.</p>
         </div>
       </div>
     </section>
 
-    <!-- Features -->
-    <section id="features" aria-labelledby="features-title">
+    <!-- FEATURES -->
+    <section id="features">
       <div class="section-head">
-        <h2 id="features-title">Features</h2>
-        <p>Built for learning outcomes.</p>
+        <h2>Features</h2>
+        <p>Designed to improve learning outcomes.</p>
       </div>
       <div class="features-grid">
-        <div class="feature">
+        <div class="feature tilt" data-tilt>
           <h4>Smart Learning Paths</h4>
-          <p class="muted">Adaptive sequences that choose the next best practice for the learner’s current understanding.</p>
+          <p class="muted">Adaptive sequences that select the best practice next step for the learner.</p>
         </div>
-        <div class="feature">
+        <div class="feature tilt" data-tilt>
           <h4>Micro-feedback</h4>
-          <p class="muted">Short, actionable feedback to support reflection and improved recall.</p>
+          <p class="muted">Short, actionable reflections after each activity to consolidate learning.</p>
         </div>
-        <div class="feature">
+        <div class="feature tilt" data-tilt>
           <h4>AI Assistant</h4>
-          <p class="muted">Context-aware hints that nudge learners without giving answers away.</p>
+          <p class="muted">Hints tailored to the student's mistake patterns and thinking steps.</p>
         </div>
-        <div class="feature">
+        <div class="feature tilt" data-tilt>
           <h4>Collaborative Workspaces</h4>
-          <p class="muted">Peer tasks and remixable problem sets for social learning.</p>
+          <p class="muted">Group tasks with remixable prompts for social learning.</p>
         </div>
       </div>
     </section>
 
-    <!-- Phone mockup + differences -->
-    <section id="mockup" aria-labelledby="mockup-title">
+    <!-- PHONE MOCKUP + DIFFERENCES -->
+    <section id="mockup">
       <div class="section-head">
-        <h2 id="mockup-title">See it in a phone</h2>
-        <p>Real screenshots inside the Pandora phone preview.</p>
+        <h2>See it in a phone</h2>
+        <p>Screenshots inside a minimalist phone preview.</p>
       </div>
 
       <div class="phone-row">
-        <div class="phone" role="img" aria-label="Phone preview">
+        <div class="phone" id="phone">
           <div class="screen">
             <div class="slides" id="slides">
-              <!-- Replace with real screenshots: background-image: url('path') -->
-              <div class="slide" style="background-image:url('https://picsum.photos/420/800?random=101')"></div>
-              <div class="slide" style="background-image:url('https://picsum.photos/420/800?random=102')"></div>
-              <div class="slide" style="background-image:url('https://picsum.photos/420/800?random=103')"></div>
+              <!-- Placeholder images - replace with your own (math/tech/rpi-ish) -->
+              <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=3f6a9f6b6c9d5f1a')" ></div>
+              <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1526378728553-02d4f061f4a4?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=2b1b9f6a8c0b4f5d')" ></div>
+              <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1548573720-df31b38b09b6?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=7d9c8f1a2b3c4d5e')" ></div>
             </div>
-            <div class="carousel-controls" id="dots"></div>
+
+            <div class="dots" id="dots" aria-hidden="false"></div>
           </div>
         </div>
 
         <div class="diffs">
           <div class="diff">
             <h4>How it's different</h4>
-            <p class="muted">Focus on comprehension: hints that scaffold, not solve. Practice that spaces learning over recall-only tasks.</p>
+            <p class="muted">Scaffolding that teaches process — models that don't give away answers, they reveal next steps.</p>
           </div>
-
           <div class="diff">
-            <h4>Instant reflection</h4>
-            <p class="muted">After each activity, short prompts guide learners to articulate understanding.</p>
+            <h4>Reflection prompts</h4>
+            <p class="muted">Encourages learners to summarize and test their understanding.</p>
           </div>
-
           <div class="diff">
-            <h4>Teacher-friendly</h4>
-            <p class="muted">Exportable reports and suggested next steps for instructors.</p>
+            <h4>Teacher tools</h4>
+            <p class="muted">Export progress and recommended next steps for instruction design.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Signup -->
-    <section id="signup" aria-labelledby="signup-title">
+    <!-- SIGNUP -->
+    <section id="signup">
       <div class="section-head">
-        <h2 id="signup-title">Be first to try Pandora</h2>
-        <p>Sign up and we’ll notify you when the beta opens.</p>
+        <h2>Be first to try Pandora</h2>
+        <p>We’ll email you when the beta opens.</p>
       </div>
 
-      <div class="signup" role="form" aria-label="signup area">
+      <div class="signup" role="form" aria-label="signup">
         <div class="left">
           <strong>Get early access</strong>
-          <div class="small">We will send one email when the beta opens. No spam.</div>
+          <div class="small">One email: beta invite. No spam.</div>
         </div>
 
-        <form id="signup-form">
-          <input id="signup-email" class="input" type="email" name="user_email" placeholder="you@domain.com" required aria-label="email" />
-          <button class="btn" type="submit">Notify me</button>
+        <form id="signup-form" onsubmit="return false;">
+          <input id="signup-email" class="input" type="email" placeholder="you@domain.com" required aria-label="email" />
+          <button class="btn" id="submitBtn">Notify me</button>
         </form>
       </div>
     </section>
 
     <footer>
-      <div>© Pandora — built with care</div>
+      <div>© Pandora • built with care</div>
     </footer>
   </div>
 
-  <!-- GSAP + ScrollTrigger -->
+  <!-- GSAP + ScrollTrigger (recreation of Camille-like parallax & enters) -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/ScrollTrigger.min.js"></script>
 
-  <!-- EmailJS SDK -->
+  <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <script>
-    // ---------- GSAP Cinematic Intro + Scroll Reveals ----------
+  (function(){
+    // ---------- Setup GSAP ----------
     gsap.registerPlugin(ScrollTrigger);
 
-    // Intro entrance: large cinematic timeline
-    const introTimeline = gsap.timeline();
-    // initial mask/scale/opacity animation to mimic Camille-style enter
-    introTimeline.from("#intro-inner", {
-      y: 40,
-      opacity: 0,
-      scale: 0.995,
-      duration: 1.05,
-      ease: "power3.out",
+    // Background parallax layers controlled by scroll
+    gsap.to("#layerA", {
+      y: 140,
+      scale: 1.02,
+      ease: "none",
+      scrollTrigger: { trigger: "body", start: 0, end: "max", scrub: 0.6 }
+    });
+    gsap.to("#layerB", {
+      y: -120,
+      scale: 1.05,
+      ease: "none",
+      scrollTrigger: { trigger: "body", start: 0, end: "max", scrub: 0.9 }
     });
 
-    // Add subtle staggered char/line reveal feel (simulate)
-    introTimeline.from(".hero-title", { y: 10, opacity: 0, duration: 0.9, ease: "power3.out" }, "-=0.8");
-    introTimeline.from(".hero-sub", { y: 10, opacity: 0, duration: 0.8, ease: "power3.out" }, "-=0.65");
-    introTimeline.from(".intro-cta button", { y: 6, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power3.out" }, "-=0.5");
+    // Cinematic intro entrance for hero (timing tuned)
+    const heroTl = gsap.timeline();
+    heroTl.from(".hero-title", { y: 40, opacity: 0, duration: 1.05, ease: "power3.out" });
+    heroTl.from(".hero-sub", { y: 18, opacity: 0, duration: 0.9, ease: "power3.out" }, "-=0.6");
+    heroTl.from(".cta-row button", { y: 8, opacity: 0, stagger: 0.08, duration: 0.6, ease: "power3.out" }, "-=0.6");
 
-    // Scroll-triggered section reveals (staggered)
+    // Reveal sections with scroll-triggered stagger
     document.querySelectorAll("section").forEach((sec, i) => {
       ScrollTrigger.create({
         trigger: sec,
-        start: "top 85%",
+        start: "top 82%",
         onEnter: () => sec.classList.add("show"),
         onEnterBack: () => sec.classList.add("show"),
       });
 
-      // For cards inside like team members, features, slides, animate children
-      const cards = sec.querySelectorAll(".member, .feature, .diff, .slide, .phone, .team-grid > *");
-      if (cards.length) {
-        gsap.from(cards, {
-          scrollTrigger: { trigger: sec, start: "top 85%" },
+      // animate children for extra polish
+      const children = sec.querySelectorAll(".member, .feature, .card, .diff, .slide, .team-grid > *");
+      if(children.length){
+        gsap.from(children, {
+          scrollTrigger: { trigger: sec, start: "top 82%" },
           y: 26,
           opacity: 0,
           duration: 0.9,
           stagger: 0.12,
-          ease: "power3.out",
+          ease: "power3.out"
         });
       }
     });
 
-    // CTA button wiring
-    document.getElementById('cta-early').addEventListener('click', ()=> {
-      document.getElementById('signup').scrollIntoView({behavior:'smooth'});
-      document.getElementById('signup-email').focus();
-    });
-    document.getElementById('cta-features').addEventListener('click', ()=> {
-      document.getElementById('features').scrollIntoView({behavior:'smooth'});
-    });
-    document.getElementById('nav-signup').addEventListener('click', ()=> {
-      document.getElementById('signup').scrollIntoView({behavior:'smooth'});
-      document.getElementById('signup-email').focus();
-    });
+    // Hover tilt micro-UI for elements with data-tilt
+    function bindTilt(selector){
+      document.querySelectorAll(selector).forEach(el=>{
+        el.addEventListener('mousemove', (e)=>{
+          const r = el.getBoundingClientRect();
+          const cx = r.left + r.width/2;
+          const cy = r.top + r.height/2;
+          const dx = (e.clientX - cx) / r.width;
+          const dy = (e.clientY - cy) / r.height;
+          const tx = dx * 6; // tilt strength
+          const ty = -dy * 6;
+          el.style.transform = `perspective(600px) rotateX(${ty}deg) rotateY(${tx}deg) scale(1.008)`;
+        });
+        el.addEventListener('mouseleave', ()=> {
+          el.style.transform = '';
+        });
+      });
+    }
+    bindTilt('[data-tilt]');
 
     // ---------- Phone carousel ----------
-    (function initCarousel(){
-      const slides = document.querySelectorAll('.slide');
+    (function(){
+      const slides = Array.from(document.querySelectorAll('.slide'));
       const dotsWrap = document.getElementById('dots');
-      let idx = 0;
-      let timer = null;
-      const len = slides.length;
+      let idx = 0, timer = null;
+      if(!slides.length) return;
 
-      // create dots
-      for (let i=0;i<len;i++){
+      slides.forEach((s, i) => { // ensure images cover
+        s.style.backgroundColor = '#060608';
+      });
+
+      for(let i=0;i<slides.length;i++){
         const d = document.createElement('div');
-        d.className = 'dot';
+        d.className='dot';
         d.dataset.i = i;
-        d.addEventListener('click', ()=> goTo(parseInt(d.dataset.i)));
+        d.addEventListener('click', ()=> goTo(i));
         dotsWrap.appendChild(d);
       }
-      const dots = dotsWrap.querySelectorAll('.dot');
+      const dots = Array.from(dotsWrap.children);
 
       function show(i){
         slides.forEach((s, j)=>{
-          if(j===i){
-            s.classList.add('show');
-          } else s.classList.remove('show');
+          if(j===i) s.classList.add('show'); else s.classList.remove('show');
         });
         dots.forEach((d, j)=> d.classList.toggle('active', j===i));
       }
 
+      function next(){
+        idx = (idx + 1) % slides.length;
+        show(idx);
+      }
       function goTo(i){
-        idx = (i + len) % len;
+        idx = (i + slides.length) % slides.length;
         show(idx);
         restart();
       }
-
-      function next(){
-        idx = (idx + 1) % len;
-        show(idx);
-      }
-
       function restart(){
         if(timer) clearInterval(timer);
         timer = setInterval(next, 3500);
       }
 
-      // init
-      show(idx);
+      show(0);
       restart();
 
-      // pause on hover (for touch devices we skip)
-      const phone = document.querySelector('.phone');
+      const phone = document.getElementById('phone');
       phone.addEventListener('mouseenter', ()=> clearInterval(timer));
       phone.addEventListener('mouseleave', restart);
     })();
 
     // ---------- EmailJS (client-side) ----------
-    (function(){
-      // initialize EmailJS - replace with your public key
-      emailjs.init("YOUR_EMAILJS_USER_ID"); // e.g. user_xxx from EmailJS dashboard
+    // Replace the strings below with your EmailJS credentials:
+    // 1) emailjs.init('YOUR_PUBLIC_USER_ID');
+    // 2) emailjs.send('SERVICE_ID', 'TEMPLATE_ID', templateParams)
+    emailjs.init('YOUR_EMAILJS_USER_ID'); // <-- put your EmailJS user id (user_xxx)
 
-      const form = document.getElementById('signup-form');
-      const input = document.getElementById('signup-email');
+    const form = document.getElementById('signup-form');
+    const input = document.getElementById('signup-email');
+    const submitBtn = document.getElementById('submitBtn');
 
-      form.addEventListener('submit', function(e){
-        e.preventDefault();
-        const emailVal = input.value.trim();
-        if(!emailVal) return;
+    function showToast(msg, ok = true){
+      const t = document.createElement('div');
+      t.textContent = msg;
+      t.style.position = 'fixed';
+      t.style.left = '50%';
+      t.style.bottom = '36px';
+      t.style.transform = 'translateX(-50%)';
+      t.style.padding = '12px 18px';
+      t.style.borderRadius = '12px';
+      t.style.zIndex = 9999;
+      t.style.background = ok ? 'linear-gradient(90deg, rgba(255,160,255,0.14), rgba(60,200,255,0.10))' : 'rgba(200,40,40,0.9)';
+      t.style.color = '#fff';
+      document.body.appendChild(t);
+      setTimeout(()=> t.style.opacity = '0', 1600);
+      setTimeout(()=> t.remove(), 2200);
+    }
 
-        // prepare template params - configure your email template to map these
-        const templateParams = {
-          user_email: emailVal,
-          timestamp: new Date().toISOString(),
-          app_name: 'Pandora'
-        };
-
-        // Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with your EmailJS values
-        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
-          .then(function(response){
-            // success UI
-            showToast('Thanks — you’re on the list!');
-            input.value = '';
-          }, function(error){
-            console.error('EmailJS error:', error);
-            showToast('Something went wrong. Please try again later.');
-          });
-      });
-
-      // small toast helper
-      function showToast(msg){
-        const t = document.createElement('div');
-        t.textContent = msg;
-        t.style.position='fixed';
-        t.style.left='50%';
-        t.style.bottom='36px';
-        t.style.transform='translateX(-50%)';
-        t.style.background='linear-gradient(90deg, rgba(140,120,255,0.14), rgba(60,200,255,0.12))';
-        t.style.padding='12px 18px';
-        t.style.borderRadius='12px';
-        t.style.boxShadow='0 10px 30px rgba(0,0,0,0.6)';
-        t.style.color='#fff';
-        t.style.zIndex=9999;
-        document.body.appendChild(t);
-        setTimeout(()=> {
-          t.style.transition='opacity 400ms';
-          t.style.opacity=0;
-        }, 1600);
-        setTimeout(()=> { try{ t.remove(); }catch(e){} }, 2200);
+    submitBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      const val = input.value.trim();
+      if(!val){
+        showToast('Please enter an email', false);
+        return;
       }
-    })();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
 
-    // small accessibility: focus outline toggle
-    (function(){
-      let mouseUsed = false;
-      window.addEventListener('mousedown', ()=> mouseUsed=true);
-      window.addEventListener('keydown', (e)=> {
-        if(e.key === 'Tab') mouseUsed = false;
+      const templateParams = {
+        user_email: val,
+        timestamp: new Date().toISOString(),
+        app_name: 'Pandora'
+      };
+
+      // Replace with your service/template ids:
+      emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+        .then(function(response){
+          showToast('Thanks — you’re on the list!');
+          input.value = '';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Notify me';
+        }, function(error){
+          console.error('EmailJS error', error);
+          // fallback: open mailto (ensures email still can reach you if EmailJS fails)
+          showToast('Email failed — opening mail client as fallback', false);
+          const recipient = 'me@vyxm.in';
+          const subject = encodeURIComponent('Pandora beta signup');
+          const body = encodeURIComponent(`Visitor email: ${val}\nSubmitted: ${new Date().toISOString()}`);
+          window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Notify me';
+        });
+    });
+
+    // small nav wiring
+    document.getElementById('seeFeatures').addEventListener('click', ()=> document.getElementById('features').scrollIntoView({behavior:'smooth'}));
+    document.getElementById('joinBtn').addEventListener('click', ()=> { document.getElementById('signup').scrollIntoView({behavior:'smooth'}); input.focus(); });
+    document.getElementById('jmp-signup').addEventListener('click', ()=> { document.getElementById('signup').scrollIntoView({behavior:'smooth'}); input.focus(); });
+
+    // smooth subtle parallax on mouse for layers (tilt effect) - cosmetic
+    document.addEventListener('mousemove', (e)=>{
+      const cw = window.innerWidth, ch = window.innerHeight;
+      const rx = (e.clientX - cw/2) / (cw/2);
+      const ry = (e.clientY - ch/2) / (ch/2);
+      gsap.to('#layerA', { x: rx * 18, y: 140 + ry * 8, duration: 1.2, ease: 'power2.out' });
+      gsap.to('#layerB', { x: rx * -34, y: -120 + ry * -10, duration: 1.5, ease: 'power2.out' });
+    });
+
+    // ensure sections already in viewport appear on load
+    window.addEventListener('load', ()=>{
+      ScrollTrigger.refresh();
+      document.querySelectorAll('section').forEach(s => {
+        const r = s.getBoundingClientRect();
+        if(r.top < window.innerHeight * 0.85) s.classList.add('show');
       });
-      document.addEventListener('focusin', (e)=>{
-        if(!mouseUsed) e.target.classList.add('focus-visible');
-      });
-      document.addEventListener('focusout', (e)=>{
-        e.target.classList.remove('focus-visible');
-      });
-    })();
+    });
+
+  })();
   </script>
+
 </body>
-</html>
+  </html>
