@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thank You — Pandora Beta</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at center, #0a0a0f 0%, #000 100%);
+    color: white;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 3rem;
+    background: linear-gradient(90deg, #D79A3D, #5EEBCC);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.3rem;
+    max-width: 600px;
+    text-align: center;
+    color: #ccc;
+    line-height: 1.6;
+  }
+
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .content {
+    z-index: 1;
+    padding: 20px;
+  }
+
+  .btn {
+    margin-top: 2rem;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    background: linear-gradient(90deg, #5EEBCC, #D79A3D);
+    color: black;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .btn:hover {
+    transform: scale(1.05);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="content">
+  <h1>🎉 Thank You for Joining!</h1>
+  <p>You’ve been added to the <strong>Pandora Beta Testing</strong> list.</p>
+  <p>We truly appreciate your support — stay tuned for updates!</p>
+  <button class="btn" onclick="window.location.href='/'">Back to Home</button>
+</div>
+
+<script>
+// --- Confetti Animation ---
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d');
+let confetti = [];
+const colors = ['#5EEBCC', '#D79A3D', '#ffffff'];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+for (let i = 0; i < 150; i++) {
+  confetti.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    r: Math.random() * 6 + 2,
+    d: Math.random() * 50 + 10,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    tilt: Math.random() * 10 - 10,
+    tiltAngleIncrement: Math.random() * 0.07 + 0.05,
+    tiltAngle: 0
+  });
+}
+
+function drawConfetti() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  confetti.forEach((c) => {
+    ctx.beginPath();
+    ctx.lineWidth = c.r;
+    ctx.strokeStyle = c.color;
+    ctx.moveTo(c.x + c.tilt + c.r / 3, c.y);
+    ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r / 3);
+    ctx.stroke();
+  });
+  updateConfetti();
+  requestAnimationFrame(drawConfetti);
+}
+
+function updateConfetti() {
+  confetti.forEach((c) => {
+    c.tiltAngle += c.tiltAngleIncrement;
+    c.y += (Math.cos(c.d) + 3 + c.r / 2) / 2;
+    c.tilt = Math.sin(c.tiltAngle) * 15;
+
+    if (c.y > canvas.height) {
+      c.y = -10;
+      c.x = Math.random() * canvas.width;
+    }
+  });
+}
+
+drawConfetti();
+</script>
+
+</body>
+</html>
